@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dag-sync-example
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      containers:
+        - name: dag-sync-example
+          image: ghcr.io/voidrot/dag-sync:latest
+          imagePullPolicy: Always
+          env:
+            - name: MINIO_ENDPOINT
+              value: "minio.example.com:9000"
+            - name: USE_SSL
+              value: "true" # default is true
+            - name: SKIP_TLS_VALIDATION
+              value: "false" # default is false
+            - name: ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: access-key-id
+            - name: SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: secret-access-key
+            - name: BUCKET_NAME
+              value: "airflow-dags"
+            - name: TARGET_DIR
+              value: "/opt/airflow/dags"
+          volumeMounts:
+            - name: dags
+              mountPath: /opt/airflow/dags
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+      securityContext:
+        fsGroup: 0
+        runAsUser: 50000
+      volumes:
+        - name: dags
+          persistentVolumeClaim:
+            claimName: airflow-dags
+      restartPolicy: Never

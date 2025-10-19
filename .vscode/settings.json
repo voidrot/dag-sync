@@ -1,6 +1,0 @@
-{
-    "go.goroot": "/home/buck/.local/share/mise/installs/go/1.25.3",
-    "go.alternateTools": {
-        "go": "/home/buck/.local/share/mise/shims/go"
-    }
-}

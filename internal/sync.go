@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/minio/minio-go/v7"
 )
@@ -40,6 +41,14 @@ func SyncDags() {
 			log.Fatalln(err)
 		}
 		defer reader.Close()
+
+		// Create the nested target directory if it doesn't exist
+		if len(strings.Split(object.Key, "/")) > 1 {
+			dirPath := strings.Join(strings.Split(object.Key, "/")[:len(strings.Split(object.Key, "/"))-1], "/")
+			if err := os.MkdirAll(targetDir+"/"+dirPath, 0755); err != nil {
+				log.Fatalln(err)
+			}
+		}
 
 		localFile, err := os.Create(fmt.Sprintf("%s/%s", targetDir, object.Key))
 		if err != nil {
